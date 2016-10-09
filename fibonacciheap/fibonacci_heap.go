@@ -5,7 +5,7 @@ import (
 	"container/list"
 	"math"
 
-	"github.com/quentin-m/kingdom/pqueue"
+	"github.com/quentin-m/pqueue"
 )
 
 type fibonacciHeap struct {
