@@ -1,4 +1,5 @@
-// Package fibonacciheap contains a Fibonacci implementation of priority queues.
+// Package fibonacciheap contains an implementation of priority queues based on
+// the Fibonacci Heap data structure.
 package fibonacciheap
 
 import (
@@ -8,7 +9,19 @@ import (
 	"github.com/quentin-m/pqueue"
 )
 
-type fibonacciHeap struct {
+// FibonacciHeap represents a priority queue based on the Fibonacci Heap
+// data structure. It implements the pqueue.PriorityQueue interface.
+//
+// The amortized running time of most of its methods is O(1), making it a very
+// fast data structure. Several have an actual running time of O(1).
+// Pop() and Delete() have O(log n) amortized running times because they do
+// the heap consolidation.
+//
+// Note that this implementation is not synchronized. If multiple threads
+// access a set concurrently, and at least one of the threads modifies the set,
+// it must be synchronized externally. This is typically accomplished by
+// synchronizing on some object that naturally encapsulates the set.
+type FibonacciHeap struct {
 	roots  *list.List
 	min    *node
 	length int
@@ -34,18 +47,8 @@ func toNode(element *list.Element) *node {
 }
 
 // New initializes a new Fibonacci heap.
-//
-// The amortized running time of most of these methods is O(1), making it a very
-// fast data structure. Several have an actual running time of O(1).
-// Pop() and Delete() have O(log n) amortized running times because they do
-// the heap consolidation.
-//
-// Note that this implementation is not synchronized. If multiple threads
-// access a set concurrently, and at least one of the threads modifies the set,
-// it must be synchronized externally. This is typically accomplished by
-// synchronizing on some object that naturally encapsulates the set.
 func New() pqueue.PriorityQueue {
-	return &fibonacciHeap{
+	return &FibonacciHeap{
 		roots: list.New(),
 	}
 }
@@ -57,7 +60,7 @@ func New() pqueue.PriorityQueue {
 // Has(), Get(), DecreaseKey() or Delete().
 //
 // Time complexity: O(1) actual.
-func (fh *fibonacciHeap) Push(value interface{}, key float64) interface{} {
+func (fh *FibonacciHeap) Push(value interface{}, key float64) interface{} {
 	// Verify precondition.
 	if math.IsInf(key, -1) {
 		panic("key must be in range (-inf,+inf]")
@@ -85,7 +88,7 @@ func (fh *fibonacciHeap) Push(value interface{}, key float64) interface{} {
 // Peek returns the value of maximum priority (i.e. minimum value) without
 // removing it from the queue.
 // Time complexity: O(1) actual.
-func (fh *fibonacciHeap) Peek() (interface{}, float64) {
+func (fh *FibonacciHeap) Peek() (interface{}, float64) {
 	if fh.min == nil {
 		return nil, math.Inf(-1)
 	}
@@ -95,7 +98,7 @@ func (fh *fibonacciHeap) Peek() (interface{}, float64) {
 // Pop returns the value of maximum priority (i.e. minimum value) and removes it
 // from the queue.
 // Time complexity: O(log n) amortized.
-func (fh *fibonacciHeap) Pop() (interface{}, float64) {
+func (fh *FibonacciHeap) Pop() (interface{}, float64) {
 	if fh.min == nil {
 		return nil, math.Inf(-1)
 	}
@@ -126,7 +129,7 @@ func (fh *fibonacciHeap) Pop() (interface{}, float64) {
 
 // Has returns whether the given element is present in the queue.
 // Time complexity: O(1) actual.
-func (fh *fibonacciHeap) Has(iNode interface{}) bool {
+func (fh *FibonacciHeap) Has(iNode interface{}) bool {
 	if iNode == nil || !iNode.(*node).isQueued {
 		return false
 	}
@@ -135,7 +138,7 @@ func (fh *fibonacciHeap) Has(iNode interface{}) bool {
 
 // Get returns the value and the priority of the given element.
 // Time complexity: O(1) actual.
-func (fh *fibonacciHeap) Get(iNode interface{}) (interface{}, float64) {
+func (fh *FibonacciHeap) Get(iNode interface{}) (interface{}, float64) {
 	if iNode == nil {
 		return nil, math.Inf(-1)
 	}
@@ -151,7 +154,7 @@ func (fh *fibonacciHeap) Get(iNode interface{}) (interface{}, float64) {
 // Has(), Get(), DecreaseKey() or Delete().
 //
 // Time complexity: O(1) amortized.
-func (fh *fibonacciHeap) DecreaseKey(iNode interface{}, key float64) {
+func (fh *FibonacciHeap) DecreaseKey(iNode interface{}, key float64) {
 	if math.IsInf(key, -1) {
 		panic("key must be in range (-inf,+inf]")
 	}
@@ -160,7 +163,7 @@ func (fh *fibonacciHeap) DecreaseKey(iNode interface{}, key float64) {
 
 // Internal version of DecreaseKey(). The public version calls it after
 // verifying that the key isn't -inf, which is reserved for Delete().
-func (fh *fibonacciHeap) decreaseKey(iNode interface{}, key float64) {
+func (fh *FibonacciHeap) decreaseKey(iNode interface{}, key float64) {
 	if iNode == nil {
 		panic("nil value given")
 	}
@@ -196,31 +199,31 @@ func (fh *fibonacciHeap) decreaseKey(iNode interface{}, key float64) {
 // The element must be present in the queue, otherwise, a panic occurs.
 //
 // Time complexity: O(log n) amortized.
-func (fh *fibonacciHeap) Delete(node interface{}) {
+func (fh *FibonacciHeap) Delete(node interface{}) {
 	fh.decreaseKey(node, math.Inf(-1))
 	fh.Pop()
 }
 
 // Length returns the number of elements in the queue.
 // Time complexity: O(1)
-func (fh *fibonacciHeap) Length() int {
+func (fh *FibonacciHeap) Length() int {
 	return fh.length
 }
 
 // Clear resets the list to its initial state, forgetting all its data.
 // Time complexity: O(1)
-func (fh *fibonacciHeap) Clear() {
+func (fh *FibonacciHeap) Clear() {
 	fh.roots.Init()
 	fh.min = nil
 	fh.length = 0
 }
 
-func (fh *fibonacciHeap) maxDegree() int {
+func (fh *FibonacciHeap) maxDegree() int {
 	phi := (1.0 + math.Sqrt(5.0)) / 2.0
 	return (int)(math.Ceil(math.Log((float64)(fh.length)) / math.Log(phi)))
 }
 
-func (fh *fibonacciHeap) consolidate() {
+func (fh *FibonacciHeap) consolidate() {
 	if fh.length == 0 {
 		return
 	}
@@ -259,7 +262,7 @@ func (fh *fibonacciHeap) consolidate() {
 	}
 }
 
-func (fh *fibonacciHeap) resetMin() {
+func (fh *FibonacciHeap) resetMin() {
 	min := fh.roots.Front()
 
 	for tree := fh.roots.Front(); tree != nil; tree = tree.Next() {
@@ -271,21 +274,21 @@ func (fh *fibonacciHeap) resetMin() {
 	fh.min = toNode(min)
 }
 
-func (fh *fibonacciHeap) link(node, newParent *node) {
+func (fh *FibonacciHeap) link(node, newParent *node) {
 	fh.roots.Remove(node.self)
 	node.parent = newParent
 	node.marked = false
 	node.self = newParent.children.PushBack(node)
 }
 
-func (fh *fibonacciHeap) cut(node *node) {
+func (fh *FibonacciHeap) cut(node *node) {
 	node.parent.children.Remove(node.self)
 	node.parent = nil
 	node.marked = false
 	node.self = fh.roots.PushBack(node)
 }
 
-func (fh *fibonacciHeap) cascadingCut(node *node) {
+func (fh *FibonacciHeap) cascadingCut(node *node) {
 	parent := node.parent
 	if parent == nil {
 		return
